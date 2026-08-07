@@ -11,3 +11,78 @@ generator client {
 datasource db {
   provider = "sqlite"
 }
+
+model Artist {
+  id        String   @id
+  name      String
+  sortName  String?
+  createdAt DateTime @default(now())
+
+  songs  SongArtist[]
+  albums AlbumArtist[]
+}
+
+model Album {
+  id          String   @id
+  title       String
+  releaseDate String?
+  coverImage  String?
+  createdAt   DateTime @default(now())
+
+  songs   Song[]
+  artists AlbumArtist[]
+}
+
+model AlbumArtist {
+  albumId  String
+  artistId String
+
+  album  Album  @relation(fields: [albumId], references: [id])
+  artist Artist @relation(fields: [artistId], references: [id])
+
+  @@id([albumId, artistId])
+}
+
+model Song {
+  id         String   @id
+  title      String
+  filePath   String   @unique
+  duration   Int?
+  albumId    String?
+  coverImage String?
+  createdAt  DateTime @default(now())
+
+  album     Album?         @relation(fields: [albumId], references: [id])
+  artists   SongArtist[]
+  playlists PlaylistSong[]
+}
+
+model SongArtist {
+  songId   String
+  artistId String
+  role     String?
+
+  song   Song   @relation(fields: [songId], references: [id])
+  artist Artist @relation(fields: [artistId], references: [id])
+
+  @@id([songId, artistId])
+}
+
+model Playlist {
+  id        String   @id
+  name      String
+  createdAt DateTime @default(now())
+
+  songs PlaylistSong[]
+}
+
+model PlaylistSong {
+  playlistId String
+  songId     String
+  position   Int
+
+  playlist Playlist @relation(fields: [playlistId], references: [id])
+  song     Song     @relation(fields: [songId], references: [id])
+
+  @@id([playlistId, songId])
+}
