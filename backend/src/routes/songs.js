@@ -21,4 +21,25 @@ router.get("/:id", async (req, res) => {
   res.json(song);
 });
 
+router.get("/favorites/all", async (req, res) => {
+  const favorites = await prisma.song.findMany({
+    where: { isFavorite: true },
+    include: { album: true, artists: { include: { artist: true } } },
+    orderBy: { title: "asc" },
+  });
+  res.json(favorites);
+});
+
+router.patch("/:id/favorite", async (req, res) => {
+  const song = await prisma.song.findUnique({ where: { id: req.params.id } });
+  if (!song) return res.status(404).json({ error: "Song not found" });
+
+  const updated = await prisma.song.update({
+    where: { id: req.params.id },
+    data: { isFavorite: !song.isFavorite },
+  });
+
+  res.json(updated);
+});
+
 export default router;

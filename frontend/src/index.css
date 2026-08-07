@@ -45,7 +45,6 @@ body {
   gap: 0.9rem;
   padding: 0.5rem;
   border-radius: 8px;
-  cursor: pointer;
 }
 
 .song-item:hover {
@@ -54,6 +53,33 @@ body {
 
 .song-item.active {
   background: #2a2a2a;
+}
+
+.song-clickable {
+  display: flex;
+  align-items: center;
+  gap: 0.9rem;
+  flex: 1;
+  min-width: 0;
+  cursor: pointer;
+}
+
+.favorite-btn {
+  background: none;
+  border: none;
+  color: #999;
+  font-size: 1.3rem;
+  cursor: pointer;
+  padding: 0.3rem 0.6rem;
+  line-height: 1;
+}
+
+.favorite-btn.active {
+  color: #e74c3c;
+}
+
+.favorite-btn:hover {
+  color: #fff;
 }
 
 .cover {

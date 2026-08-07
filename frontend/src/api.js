@@ -32,3 +32,13 @@ export async function fetchArtistById(id) {
   const res = await fetch(`${API_BASE}/artists/${id}`);
   return res.json();
 }
+
+export async function fetchFavorites() {
+  const res = await fetch(`${API_BASE}/songs/favorites/all`);
+  return res.json();
+}
+
+export async function toggleFavorite(songId) {
+  const res = await fetch(`${API_BASE}/songs/${songId}/favorite`, { method: "PATCH" });
+  return res.json();
+}

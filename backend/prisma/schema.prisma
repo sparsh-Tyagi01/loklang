@@ -49,6 +49,7 @@ model Song {
   duration   Int?
   albumId    String?
   coverImage String?
+  isFavorite Boolean  @default(false)
   createdAt  DateTime @default(now())
 
   album     Album?         @relation(fields: [albumId], references: [id])
