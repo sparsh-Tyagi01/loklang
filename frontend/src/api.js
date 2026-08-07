@@ -42,3 +42,38 @@ export async function toggleFavorite(songId) {
   const res = await fetch(`${API_BASE}/songs/${songId}/favorite`, { method: "PATCH" });
   return res.json();
 }
+
+export async function fetchPlaylists() {
+  const res = await fetch(`${API_BASE}/playlists`);
+  return res.json();
+}
+
+export async function fetchPlaylistById(id) {
+  const res = await fetch(`${API_BASE}/playlists/${id}`);
+  return res.json();
+}
+
+export async function createPlaylist(name) {
+  const res = await fetch(`${API_BASE}/playlists`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ name }),
+  });
+  return res.json();
+}
+
+export async function deletePlaylist(id) {
+  await fetch(`${API_BASE}/playlists/${id}`, { method: "DELETE" });
+}
+
+export async function addSongToPlaylist(playlistId, songId) {
+  await fetch(`${API_BASE}/playlists/${playlistId}/songs`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ songId }),
+  });
+}
+
+export async function removeSongFromPlaylist(playlistId, songId) {
+  await fetch(`${API_BASE}/playlists/${playlistId}/songs/${songId}`, { method: "DELETE" });
+}

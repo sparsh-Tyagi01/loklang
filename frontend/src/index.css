@@ -204,3 +204,59 @@ body {
   border-radius: 8px;
   background: #333;
 }
+
+.playlist-form {
+  display: flex;
+  gap: 0.6rem;
+  margin-bottom: 1.5rem;
+}
+
+.playlist-form input {
+  flex: 1;
+  padding: 0.6rem 0.9rem;
+  border-radius: 6px;
+  border: 1px solid #333;
+  background: #1a1a1a;
+  color: #eee;
+}
+
+.playlist-form button {
+  padding: 0.6rem 1.2rem;
+  border-radius: 6px;
+  border: none;
+  background: #e74c3c;
+  color: #fff;
+  cursor: pointer;
+}
+
+.add-to-playlist {
+  position: relative;
+}
+
+.playlist-dropdown {
+  position: absolute;
+  right: 0;
+  top: 100%;
+  background: #222;
+  border: 1px solid #333;
+  border-radius: 6px;
+  min-width: 160px;
+  z-index: 10;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+}
+
+.dropdown-item {
+  padding: 0.6rem 0.9rem;
+  cursor: pointer;
+  font-size: 0.85rem;
+}
+
+.dropdown-item:hover {
+  background: #2a2a2a;
+}
+
+.dropdown-empty {
+  padding: 0.6rem 0.9rem;
+  color: #888;
+  font-size: 0.85rem;
+}

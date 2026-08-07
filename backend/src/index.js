@@ -9,6 +9,7 @@ import albumsRouter from "./routes/albums.js";
 import artistsRouter from "./routes/artists.js";
 import streamRouter from "./routes/stream.js";
 import picturesRouter from "./routes/pictures.js";
+import playlistsRouter from "./routes/playlists.js";
 import { scanDir } from "./scanner.js";
 
 const PORT = process.env.PORT || 8000;
@@ -19,11 +20,14 @@ fs.mkdirSync("data", { recursive: true });
 const app = express();
 app.use(cors());
 
+app.use(express.json()); 
+
 app.use("/api/songs", songsRouter);
 app.use("/api/albums", albumsRouter);
 app.use("/api/artists", artistsRouter);
 app.use("/api/stream", streamRouter);
 app.use("/api/pictures", picturesRouter);
+app.use("/api/playlists", playlistsRouter);
 
 async function start() {
   console.log(`Scanning "${ROOT_DIR}" for music...`);

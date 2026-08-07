@@ -6,6 +6,8 @@ import AlbumDetail from "./pages/AlbumDetail";
 import Artists from "./pages/Artists";
 import ArtistDetail from "./pages/ArtistDetail";
 import Favorites from "./pages/Favorites";
+import Playlists from "./pages/Playlists";
+import PlaylistDetail from "./pages/PlaylistDetail";
 
 export default function App() {
   return (
@@ -18,6 +20,7 @@ export default function App() {
             <Link to="/albums">Albums</Link>
             <Link to="/artists">Artists</Link>
             <Link to="/favorites">Favorites</Link>
+            <Link to="/playlists">Playlists</Link>
           </nav>
         </header>
 
@@ -29,6 +32,8 @@ export default function App() {
             <Route path="/artists" element={<Artists />} />
             <Route path="/artists/:id" element={<ArtistDetail />} />
             <Route path="/favorites" element={<Favorites />} />
+            <Route path="/playlists" element={<Playlists />} />
+            <Route path="/playlists/:id" element={<PlaylistDetail />} />
           </Routes>
         </main>
       </div>

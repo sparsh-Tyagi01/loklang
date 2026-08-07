@@ -1,6 +1,16 @@
 import { coverUrl } from "../api";
+import AddToPlaylistButton from "./AddToPlaylistButton";
 
-export default function SongRow({ song, isActive, onPlay, onToggleFavorite, showAlbumCover = true }) {
+export default function SongRow({
+  song,
+  isActive,
+  onPlay,
+  onToggleFavorite,
+  showAlbumCover = true,
+  showRemove = false,
+  onRemove,
+  showAddToPlaylist = false,
+}) {
   return (
     <div className={`song-item ${isActive ? "active" : ""}`}>
       <div className="song-clickable" onClick={onPlay}>
@@ -17,16 +27,31 @@ export default function SongRow({ song, isActive, onPlay, onToggleFavorite, show
         </div>
       </div>
 
-      <button
-        className={`favorite-btn ${song.isFavorite ? "active" : ""}`}
-        onClick={(e) => {
-          e.stopPropagation();
-          onToggleFavorite(song.id);
-        }}
-        title={song.isFavorite ? "Remove from favorites" : "Add to favorites"}
-      >
-        {song.isFavorite ? "♥" : "♡"}
-      </button>
+        {showAddToPlaylist && <AddToPlaylistButton songId={song.id} />}
+
+      {showRemove ? (
+        <button
+          className="favorite-btn"
+          onClick={(e) => {
+            e.stopPropagation();
+            onRemove();
+          }}
+          title="Remove from playlist"
+        >
+          ✕
+        </button>
+      ) : (
+        <button
+          className={`favorite-btn ${song.isFavorite ? "active" : ""}`}
+          onClick={(e) => {
+            e.stopPropagation();
+            onToggleFavorite(song.id);
+          }}
+          title={song.isFavorite ? "Remove from favorites" : "Add to favorites"}
+        >
+          {song.isFavorite ? "♥" : "♡"}
+        </button>
+      )}
     </div>
   );
 }

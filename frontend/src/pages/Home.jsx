@@ -31,6 +31,7 @@ export default function Home() {
           isActive={current?.id === song.id}
           onPlay={() => playSong(song)}
           onToggleFavorite={handleToggleFavorite}
+          showAddToPlaylist
         />
       ))}
     </div>
