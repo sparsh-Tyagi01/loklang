@@ -1,4 +1,4 @@
-import "dotenv/config";
+// import "dotenv/config";
 import express from "express";
 import cors from "cors";
 import path from "path";
@@ -10,6 +10,7 @@ import artistsRouter from "./routes/artists.js";
 import streamRouter from "./routes/stream.js";
 import picturesRouter from "./routes/pictures.js";
 import playlistsRouter from "./routes/playlists.js";
+import qrRouter from "./routes/qr.js";
 import { scanDir } from "./scanner.js";
 
 import { Bonjour } from "bonjour-service";
@@ -30,6 +31,13 @@ app.use("/api/artists", artistsRouter);
 app.use("/api/stream", streamRouter);
 app.use("/api/pictures", picturesRouter);
 app.use("/api/playlists", playlistsRouter);
+app.use("/api/qr", qrRouter);
+
+const clientDist = path.resolve("../frontend/dist");
+if (fs.existsSync(clientDist)) {
+  app.use(express.static(clientDist));
+  app.get("{*splat}", (req, res) => res.sendFile(path.join(clientDist, "index.html")));
+}
 
 async function start() {
   console.log(`Scanning "${ROOT_DIR}" for music...`);

@@ -8,6 +8,7 @@ import ArtistDetail from "./pages/ArtistDetail";
 import Favorites from "./pages/Favorites";
 import Playlists from "./pages/Playlists";
 import PlaylistDetail from "./pages/PlaylistDetail";
+import Connect from "./pages/Connect";
 
 export default function App() {
   return (
@@ -21,6 +22,7 @@ export default function App() {
             <Link to="/artists">Artists</Link>
             <Link to="/favorites">Favorites</Link>
             <Link to="/playlists">Playlists</Link>
+            <Link to="/connect">Connect</Link>
           </nav>
         </header>
 
@@ -34,6 +36,7 @@ export default function App() {
             <Route path="/favorites" element={<Favorites />} />
             <Route path="/playlists" element={<Playlists />} />
             <Route path="/playlists/:id" element={<PlaylistDetail />} />
+            <Route path="/connect" element={<Connect />} />
           </Routes>
         </main>
       </div>

@@ -3,6 +3,9 @@
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
+  "bin": {
+    "loklang": "./src/cli.js"
+  },
   "scripts": {
     "dev": "prisma generate && node src/index.js",
     "prisma:generate": "prisma generate",
@@ -21,7 +24,8 @@
     "cors": "^2.8.6",
     "express": "^5.2.1",
     "mime-types": "^3.0.2",
-    "music-metadata": "^11.14.0"
+    "music-metadata": "^11.14.0",
+    "qrcode": "^1.5.4"
   },
   "devDependencies": {
     "@types/node": "^26.1.2",
