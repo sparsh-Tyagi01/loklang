@@ -12,6 +12,8 @@ import picturesRouter from "./routes/pictures.js";
 import playlistsRouter from "./routes/playlists.js";
 import { scanDir } from "./scanner.js";
 
+import { Bonjour } from "bonjour-service";
+
 const PORT = process.env.PORT || 8000;
 const ROOT_DIR = process.env.ROOT_DIR || "./music";
 
@@ -34,8 +36,22 @@ async function start() {
   await scanDir(path.resolve(ROOT_DIR));
   console.log("Scan complete.");
 
-  app.listen(PORT, () => {
-    console.log(`Loklang server running at http://localhost:${PORT}`);
+  app.listen(PORT, "0.0.0.0", () => {
+    console.log(`Loklang running at http://localhost:${PORT}`);
+
+    const bonjour = new Bonjour();
+    bonjour.publish({
+      name: "Loklang Music Server",
+      type: "http",
+      host: "loklang.local",
+      port: Number(PORT),
+    });
+
+    console.log(`Also discoverable at http://loklang.local:${PORT}`);
+
+    process.on("SIGINT", () => {
+      bonjour.unpublishAll(() => process.exit(0));
+    });
   });
 }
 
