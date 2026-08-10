@@ -2,16 +2,18 @@ import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { fetchPlaylistById, removeSongFromPlaylist } from "../api";
 import { usePlayer } from "../PlayerContext";
+import { useLibraryEvents } from "../useLibraryEvents";
 import SongRow from "../components/SongRow";
 
 export default function PlaylistDetail() {
   const { id } = useParams();
   const [playlist, setPlaylist] = useState(null);
   const { current, playSong } = usePlayer();
+  const libraryVersion = useLibraryEvents();
 
   useEffect(() => {
     load();
-  }, [id]);
+  }, [id, libraryVersion]);
 
   function load() {
     fetchPlaylistById(id).then(setPlaylist);

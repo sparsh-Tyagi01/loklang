@@ -1,5 +1,7 @@
 import { Router } from "express";
+import path from "path";
 import { prisma } from "../db.js";
+import { scanDir } from "../scanner.js";
 
 const router = Router();
 
@@ -9,6 +11,16 @@ router.get("/", async (req, res) => {
     orderBy: { title: "asc" },
   });
   res.json(songs);
+});
+
+router.post("/rescan", async (req, res) => {
+  try {
+    const rootDir = process.env.ROOT_DIR || "./music";
+    await scanDir(path.resolve(rootDir));
+    res.json({ message: "Rescan complete" });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 });
 
 router.get("/favorites/all", async (req, res) => {

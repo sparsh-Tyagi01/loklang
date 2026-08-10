@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { fetchAlbumById, coverUrl, toggleFavorite } from "../api";
 import { usePlayer } from "../PlayerContext";
+import { useLibraryEvents } from "../useLibraryEvents";
 import SongRow from "../components/SongRow";
 
 export default function AlbumDetail() {
@@ -9,12 +10,13 @@ export default function AlbumDetail() {
   const [album, setAlbum] = useState(null);
   const [loading, setLoading] = useState(true);
   const { current, playSong } = usePlayer();
+  const libraryVersion = useLibraryEvents();
 
   useEffect(() => {
     fetchAlbumById(id)
       .then(setAlbum)
       .finally(() => setLoading(false));
-  }, [id]);
+  }, [id, libraryVersion]);
 
   async function handleToggleFavorite(songId) {
     const updated = await toggleFavorite(songId);

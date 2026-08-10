@@ -36,8 +36,8 @@ model AlbumArtist {
   albumId  String
   artistId String
 
-  album  Album  @relation(fields: [albumId], references: [id])
-  artist Artist @relation(fields: [artistId], references: [id])
+  album  Album  @relation(fields: [albumId], references: [id], onDelete: Cascade)
+  artist Artist @relation(fields: [artistId], references: [id], onDelete: Cascade)
 
   @@id([albumId, artistId])
 }
@@ -52,7 +52,7 @@ model Song {
   isFavorite Boolean  @default(false)
   createdAt  DateTime @default(now())
 
-  album     Album?         @relation(fields: [albumId], references: [id])
+  album     Album?         @relation(fields: [albumId], references: [id], onDelete: SetNull)
   artists   SongArtist[]
   playlists PlaylistSong[]
 }
@@ -62,8 +62,8 @@ model SongArtist {
   artistId String
   role     String?
 
-  song   Song   @relation(fields: [songId], references: [id])
-  artist Artist @relation(fields: [artistId], references: [id])
+  song   Song   @relation(fields: [songId], references: [id], onDelete: Cascade)
+  artist Artist @relation(fields: [artistId], references: [id], onDelete: Cascade)
 
   @@id([songId, artistId])
 }
@@ -81,8 +81,8 @@ model PlaylistSong {
   songId     String
   position   Int
 
-  playlist Playlist @relation(fields: [playlistId], references: [id])
-  song     Song     @relation(fields: [songId], references: [id])
+  playlist Playlist @relation(fields: [playlistId], references: [id], onDelete: Cascade)
+  song     Song     @relation(fields: [songId], references: [id], onDelete: Cascade)
 
   @@id([playlistId, songId])
 }

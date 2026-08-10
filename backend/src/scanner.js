@@ -113,16 +113,105 @@ async function processFile(filePath) {
   }
 }
 
+export async function removeSongById(songId) {
+  try {
+    const song = await prisma.song.findUnique({
+      where: { id: songId },
+      include: { artists: true },
+    });
+    if (!song) return;
+
+    const albumId = song.albumId;
+    const artistIds = song.artists.map((sa) => sa.artistId);
+
+    await prisma.song.delete({ where: { id: songId } });
+
+    if (albumId) {
+      const remainingSongs = await prisma.song.count({ where: { albumId } });
+      if (remainingSongs === 0) {
+        const album = await prisma.album.findUnique({ where: { id: albumId } });
+        if (album?.coverImage && fs.existsSync(album.coverImage)) {
+          try {
+            fs.unlinkSync(album.coverImage);
+          } catch (e) {}
+        }
+        await prisma.album.delete({ where: { id: albumId } });
+      }
+    }
+
+    for (const artistId of artistIds) {
+      const songCount = await prisma.songArtist.count({ where: { artistId } });
+      const albumCount = await prisma.albumArtist.count({ where: { artistId } });
+      if (songCount === 0 && albumCount === 0) {
+        await prisma.artist.delete({ where: { id: artistId } });
+      }
+    }
+  } catch (err) {
+    console.error(`Error deleting song ID ${songId}:`, err.message);
+  }
+}
+
+let libraryUpdateListener = null;
+
+export function setOnLibraryUpdate(listener) {
+  libraryUpdateListener = listener;
+}
+
+export function notifyLibraryUpdate() {
+  if (libraryUpdateListener) {
+    try {
+      libraryUpdateListener();
+    } catch (e) {}
+  }
+}
+
 export async function scanDir(rootDir) {
-  if (!fs.existsSync(rootDir)) {
-    console.warn(`Root music directory does not exist: ${rootDir}`);
+  const resolvedRoot = path.resolve(rootDir);
+  if (!fs.existsSync(resolvedRoot)) {
+    console.warn(`Root music directory does not exist: ${resolvedRoot}`);
     return;
   }
 
-  const files = collectAudioFiles(rootDir);
+  const files = collectAudioFiles(resolvedRoot);
+  const existingFilesSet = new Set(files.map((f) => path.resolve(f)));
   console.log(`Found ${files.length} audio files. Extracting metadata...`);
 
   for (const file of files) {
     await processFile(file);
+  }
+
+  // Clean up songs in DB that no longer exist on disk
+  const dbSongs = await prisma.song.findMany();
+  let deletedCount = 0;
+  for (const song of dbSongs) {
+    const resolvedPath = path.resolve(song.filePath);
+    if (!fs.existsSync(resolvedPath) || !existingFilesSet.has(resolvedPath)) {
+      console.log(`File deleted on disk. Removing from DB: ${song.title} (${song.filePath})`);
+      await removeSongById(song.id);
+      deletedCount++;
+    }
+  }
+
+  notifyLibraryUpdate();
+}
+
+let debounceTimer = null;
+
+export function watchMusicDir(rootDir) {
+  const resolvedRoot = path.resolve(rootDir);
+  if (!fs.existsSync(resolvedRoot)) return;
+
+  console.log(`Watching "${resolvedRoot}" for music folder changes...`);
+  try {
+    fs.watch(resolvedRoot, { recursive: true }, (eventType, filename) => {
+      if (filename && (filename.startsWith(".") || filename.includes(".tmp"))) return;
+      if (debounceTimer) clearTimeout(debounceTimer);
+      debounceTimer = setTimeout(() => {
+        console.log(`Change detected in music folder (${eventType}: ${filename}). Rescanning...`);
+        scanDir(resolvedRoot).catch((err) => console.error("Error during watch rescan:", err));
+      }, 500);
+    });
+  } catch (err) {
+    console.error("Could not set up filesystem watcher:", err.message);
   }
 }

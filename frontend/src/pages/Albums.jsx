@@ -1,16 +1,18 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { fetchAlbums, coverUrl } from "../api";
+import { useLibraryEvents } from "../useLibraryEvents";
 
 export default function Albums() {
   const [albums, setAlbums] = useState([]);
   const [loading, setLoading] = useState(true);
+  const libraryVersion = useLibraryEvents();
 
   useEffect(() => {
     fetchAlbums()
       .then(setAlbums)
       .finally(() => setLoading(false));
-  }, []);
+  }, [libraryVersion]);
 
   if (loading) return <p className="empty-state">Loading...</p>;
   if (albums.length === 0) return <p className="empty-state">No albums found.</p>;

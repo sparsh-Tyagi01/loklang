@@ -1,15 +1,17 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { fetchPlaylists, createPlaylist, deletePlaylist } from "../api";
+import { useLibraryEvents } from "../useLibraryEvents";
 
 export default function Playlists() {
   const [playlists, setPlaylists] = useState([]);
   const [name, setName] = useState("");
   const [loading, setLoading] = useState(true);
+  const libraryVersion = useLibraryEvents();
 
   useEffect(() => {
     loadPlaylists();
-  }, []);
+  }, [libraryVersion]);
 
   function loadPlaylists() {
     setLoading(true);

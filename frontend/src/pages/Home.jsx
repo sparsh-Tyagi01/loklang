@@ -1,18 +1,20 @@
 import { useEffect, useState } from "react";
 import { fetchSongs, toggleFavorite } from "../api";
 import { usePlayer } from "../PlayerContext";
+import { useLibraryEvents } from "../useLibraryEvents";
 import SongRow from "../components/SongRow";
 
 export default function Home() {
   const [songs, setSongs] = useState([]);
   const [loading, setLoading] = useState(true);
   const { current, playSong } = usePlayer();
+  const libraryVersion = useLibraryEvents();
 
   useEffect(() => {
     fetchSongs()
       .then(setSongs)
       .finally(() => setLoading(false));
-  }, []);
+  }, [libraryVersion]);
 
   async function handleToggleFavorite(songId) {
     const updated = await toggleFavorite(songId);

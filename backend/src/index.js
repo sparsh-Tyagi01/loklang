@@ -1,3 +1,4 @@
+import "dotenv/config";
 import express from "express";
 import cors from "cors";
 import path from "path";
@@ -10,7 +11,7 @@ import streamRouter from "./routes/stream.js";
 import picturesRouter from "./routes/pictures.js";
 import playlistsRouter from "./routes/playlists.js";
 import qrRouter from "./routes/qr.js";
-import { scanDir } from "./scanner.js";
+import { scanDir, watchMusicDir, setOnLibraryUpdate } from "./scanner.js";
 
 const PORT = process.env.PORT || 8000;
 const ROOT_DIR = process.env.ROOT_DIR || "./music";
@@ -19,8 +20,30 @@ fs.mkdirSync("data", { recursive: true });
 
 const app = express();
 app.use(cors());
-
 app.use(express.json()); 
+
+const sseClients = new Set();
+
+app.get("/api/events", (req, res) => {
+  res.setHeader("Content-Type", "text/event-stream");
+  res.setHeader("Cache-Control", "no-cache");
+  res.setHeader("Connection", "keep-alive");
+  res.flushHeaders();
+
+  sseClients.add(res);
+
+  req.on("close", () => {
+    sseClients.delete(res);
+  });
+});
+
+export function broadcastLibraryUpdate() {
+  for (const client of sseClients) {
+    client.write("data: library-updated\n\n");
+  }
+}
+
+setOnLibraryUpdate(broadcastLibraryUpdate);
 
 app.use("/api/songs", songsRouter);
 app.use("/api/albums", albumsRouter);
@@ -37,9 +60,12 @@ if (fs.existsSync(clientDist)) {
 }
 
 async function start() {
-  console.log(`Scanning "${ROOT_DIR}" for music...`);
-  await scanDir(path.resolve(ROOT_DIR));
+  const musicPath = path.resolve(ROOT_DIR);
+  console.log(`Scanning "${musicPath}" for music...`);
+  await scanDir(musicPath);
   console.log("Scan complete.");
+
+  watchMusicDir(musicPath);
 
   app.listen(PORT, "0.0.0.0", () => {
     console.log(`Loklang running at http://localhost:${PORT}`);

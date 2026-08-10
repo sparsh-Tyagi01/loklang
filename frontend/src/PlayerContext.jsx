@@ -5,16 +5,23 @@ const PlayerContext = createContext(null);
 
 export function PlayerProvider({ children }) {
   const [current, setCurrent] = useState(null);
+  const [errorMsg, setErrorMsg] = useState(null);
   const audioRef = useRef(null);
 
   useEffect(() => {
     if (current && audioRef.current) {
+      setErrorMsg(null);
       audioRef.current.play().catch(() => {});
     }
   }, [current]);
 
   function playSong(song) {
+    setErrorMsg(null);
     setCurrent(song);
+  }
+
+  function handleAudioError() {
+    setErrorMsg("Audio file could not be played or was deleted.");
   }
 
   return (
@@ -25,10 +32,14 @@ export function PlayerProvider({ children }) {
           <div className="now-playing">
             <div className="song-title">{current.title}</div>
             <div className="song-artist">
-              {current.artists?.map((a) => a.artist.name).join(", ") || "Unknown Artist"}
+              {errorMsg ? (
+                <span style={{ color: "#ff6b6b" }}>{errorMsg}</span>
+              ) : (
+                current.artists?.map((a) => a.artist.name).join(", ") || "Unknown Artist"
+              )}
             </div>
           </div>
-          <audio ref={audioRef} controls src={streamUrl(current.id)} />
+          <audio ref={audioRef} controls src={streamUrl(current.id)} onError={handleAudioError} />
         </footer>
       )}
     </PlayerContext.Provider>

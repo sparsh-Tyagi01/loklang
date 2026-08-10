@@ -2,15 +2,17 @@ import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { fetchArtistById } from "../api";
 import { usePlayer } from "../PlayerContext";
+import { useLibraryEvents } from "../useLibraryEvents";
 
 export default function ArtistDetail() {
   const { id } = useParams();
   const [artist, setArtist] = useState(null);
   const { current, playSong } = usePlayer();
+  const libraryVersion = useLibraryEvents();
 
   useEffect(() => {
     fetchArtistById(id).then(setArtist);
-  }, [id]);
+  }, [id, libraryVersion]);
 
   if (!artist) return <p className="empty-state">Loading...</p>;
 

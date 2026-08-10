@@ -2,6 +2,7 @@ import { Router } from "express";
 import fs from "fs";
 import mime from "mime-types";
 import { prisma } from "../db.js";
+import { removeSongById } from "../scanner.js";
 
 const router = Router();
 
@@ -11,6 +12,7 @@ router.get("/:id", async (req, res) => {
 
   const filePath = song.filePath;
   if (!fs.existsSync(filePath)) {
+    await removeSongById(song.id);
     return res.status(404).send("File missing on disk");
   }
 
