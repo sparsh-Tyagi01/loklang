@@ -3,6 +3,7 @@ import { fetchSongs, toggleFavorite } from "../api";
 import { usePlayer } from "../PlayerContext";
 import { useLibraryEvents } from "../useLibraryEvents";
 import SongRow from "../components/SongRow";
+import FolderDropZone from "../components/FolderDropZone";
 
 export default function Home() {
   const [songs, setSongs] = useState([]);
@@ -22,7 +23,7 @@ export default function Home() {
   }
 
   if (loading) return <p className="empty-state">Loading...</p>;
-  if (songs.length === 0) return <p className="empty-state">No songs found.</p>;
+  if (songs.length === 0) return <FolderDropZone />;
 
   return (
     <div className="song-list">

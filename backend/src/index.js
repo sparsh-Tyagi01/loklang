@@ -11,12 +11,16 @@ import streamRouter from "./routes/stream.js";
 import picturesRouter from "./routes/pictures.js";
 import playlistsRouter from "./routes/playlists.js";
 import qrRouter from "./routes/qr.js";
+import uploadRouter from "./routes/upload.js";
 import { scanDir, watchMusicDir, setOnLibraryUpdate } from "./scanner.js";
 
+import os from "os";
+
 const PORT = process.env.PORT || 8000;
-const ROOT_DIR = process.env.ROOT_DIR || "./music";
+const ROOT_DIR = path.resolve("data/music");
 
 fs.mkdirSync("data", { recursive: true });
+fs.mkdirSync(ROOT_DIR, { recursive: true });
 
 const app = express();
 app.use(cors());
@@ -52,6 +56,7 @@ app.use("/api/stream", streamRouter);
 app.use("/api/pictures", picturesRouter);
 app.use("/api/playlists", playlistsRouter);
 app.use("/api/qr", qrRouter);
+app.use("/api/upload", uploadRouter);
 
 const clientDist = path.resolve("../frontend/dist");
 if (fs.existsSync(clientDist)) {

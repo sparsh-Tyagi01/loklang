@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Routes, Route, Link } from "react-router-dom";
 import { PlayerProvider } from "./PlayerContext";
 import Home from "./pages/Home";
@@ -9,13 +10,24 @@ import Favorites from "./pages/Favorites";
 import Playlists from "./pages/Playlists";
 import PlaylistDetail from "./pages/PlaylistDetail";
 import Connect from "./pages/Connect";
+import FolderDropZone from "./components/FolderDropZone";
 
 export default function App() {
+  const [showUploadModal, setShowUploadModal] = useState(false);
+
   return (
     <PlayerProvider>
       <div className="app">
         <header className="app-header">
-          <h1>Loklang</h1>
+          <div style={{ display: "flex", alignItems: "center", width: "100%" }}>
+            <h1>Loklang</h1>
+            <button
+              className="upload-btn-header"
+              onClick={() => setShowUploadModal(true)}
+            >
+              + Upload Music Folder
+            </button>
+          </div>
           <nav className="nav">
             <Link to="/">Songs</Link>
             <Link to="/albums">Albums</Link>
@@ -26,9 +38,16 @@ export default function App() {
           </nav>
         </header>
 
+        {showUploadModal && (
+          <FolderDropZone
+            onClose={() => setShowUploadModal(false)}
+            onComplete={() => setShowUploadModal(false)}
+          />
+        )}
+
         <main className="main-content">
           <Routes>
-            <Route path="/" element={<Home />} />
+            <Route path="/" element={<Home onOpenUpload={() => setShowUploadModal(true)} />} />
             <Route path="/albums" element={<Albums />} />
             <Route path="/albums/:id" element={<AlbumDetail />} />
             <Route path="/artists" element={<Artists />} />

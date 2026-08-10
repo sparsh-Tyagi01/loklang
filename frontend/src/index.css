@@ -278,3 +278,126 @@ body {
   color: #e74c3c;
   font-size: 0.9rem;
 }
+
+.dropzone-modal {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem 1rem;
+}
+
+.dropzone-card {
+  position: relative;
+  width: 100%;
+  max-width: 580px;
+  background: rgba(24, 24, 28, 0.85);
+  backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 16px;
+  padding: 2.5rem;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6);
+  text-align: center;
+}
+
+.dropzone-close {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  background: none;
+  border: none;
+  color: #888;
+  font-size: 1.2rem;
+  cursor: pointer;
+  padding: 0.4rem;
+}
+
+.dropzone-close:hover {
+  color: #fff;
+}
+
+.dropzone-area {
+  border: 2px dashed rgba(255, 255, 255, 0.2);
+  border-radius: 12px;
+  padding: 3rem 1.5rem;
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.dropzone-area:hover,
+.dropzone-area.active {
+  border-color: #e74c3c;
+  background: rgba(231, 76, 60, 0.08);
+}
+
+.dropzone-icon {
+  font-size: 3rem;
+  margin-bottom: 1rem;
+}
+
+.dropzone-prompt h3 {
+  margin: 0 0 0.5rem 0;
+  font-size: 1.2rem;
+  color: #fff;
+}
+
+.dropzone-prompt p {
+  margin: 0 0 1.5rem 0;
+  font-size: 0.85rem;
+  color: #999;
+}
+
+.browse-btn {
+  background: linear-gradient(135deg, #e74c3c, #c0392b);
+  color: #fff;
+  border: none;
+  padding: 0.75rem 1.5rem;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: transform 0.15s ease;
+}
+
+.browse-btn:hover {
+  transform: translateY(-2px);
+}
+
+.progress-bar-track {
+  width: 100%;
+  height: 8px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 4px;
+  overflow: hidden;
+  margin-top: 1rem;
+}
+
+.progress-bar-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #e74c3c, #f39c12);
+  transition: width 0.2s ease;
+}
+
+.dropzone-error {
+  margin-top: 1rem;
+  color: #ff6b6b;
+  font-size: 0.85rem;
+}
+
+.upload-btn-header {
+  background: rgba(231, 76, 60, 0.15);
+  color: #e74c3c;
+  border: 1px solid rgba(231, 76, 60, 0.4);
+  padding: 0.4rem 0.8rem;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.85rem;
+  font-weight: 500;
+  margin-left: auto;
+  transition: all 0.2s ease;
+}
+
+.upload-btn-header:hover {
+  background: #e74c3c;
+  color: #fff;
+}
