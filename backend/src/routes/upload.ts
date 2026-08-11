@@ -1,4 +1,5 @@
 import { Router, Request, Response } from "express";
+import rateLimit from "express-rate-limit";
 import { storageService } from "../services/StorageService.js";
 import { scannerService } from "../services/ScannerService.js";
 import { logger } from "../logger.js";
@@ -6,7 +7,15 @@ import { logger } from "../logger.js";
 const router = Router();
 const uploader = storageService.getMulterUploader();
 
-router.post("/folder", uploader.array("files", 500), async (req: Request, res: Response) => {
+const uploadLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000, // 1 hour
+  max: 30, // Limit each IP to 30 folder upload requests per hour
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: "Upload limit exceeded. Please try again in an hour." },
+});
+
+router.post("/folder", uploadLimiter, uploader.array("files", 500), async (req: Request, res: Response) => {
   const reqId = (req.headers["x-request-id"] as string) || "unknown";
   try {
     const files = req.files as Express.Multer.File[];

@@ -1,0 +1,24 @@
+<svg width="360" height="96" viewBox="0 0 360 96" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="mark-bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#ff6b4a"/>
+      <stop offset="100%" stop-color="#e63946"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Icon mark -->
+  <rect x="0" y="8" width="80" height="80" rx="20" fill="url(#mark-bg)"/>
+  <rect x="23" y="26" width="8.5" height="44" rx="4.25" fill="#ffffff"/>
+  <rect x="36" y="38" width="8.5" height="32" rx="4.25" fill="#ffffff" fill-opacity="0.92"/>
+  <rect x="49" y="30" width="8.5" height="40" rx="4.25" fill="#ffffff" fill-opacity="0.85"/>
+
+  <!-- Wordmark -->
+  <text x="100" y="62" font-family="-apple-system, 'Segoe UI', Helvetica, Arial, sans-serif"
+        font-size="42" font-weight="700" letter-spacing="-0.5" fill="#f2f2f2">
+    loklang
+  </text>
+  <text x="100" y="80" font-family="-apple-system, 'Segoe UI', Helvetica, Arial, sans-serif"
+        font-size="13" font-weight="500" letter-spacing="2.5" fill="#999999">
+    LOCAL MUSIC SERVER
+  </text>
+</svg>

@@ -6,6 +6,8 @@ import fs from "fs";
 import crypto from "crypto";
 import { pinoHttp } from "pino-http";
 import helmet from "helmet";
+import compression from "compression";
+import rateLimit from "express-rate-limit";
 
 import { logger } from "./logger.js";
 import { prisma } from "./db.js";
@@ -28,6 +30,15 @@ fs.mkdirSync("data", { recursive: true });
 fs.mkdirSync(ROOT_DIR, { recursive: true });
 
 export const app = express();
+
+app.use(
+  compression({
+    filter: (req: Request, res: Response) => {
+      if (req.url.startsWith("/api/stream")) return false;
+      return compression.filter(req, res);
+    },
+  })
+);
 
 app.use((req: Request, res: Response, next) => {
   const reqId = (req.headers["x-request-id"] as string) || `req-${crypto.randomUUID()}`;
@@ -54,6 +65,16 @@ app.use(
 );
 app.use(cors());
 app.use(express.json());
+
+const apiLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 1000,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: "Too many requests, please try again later." },
+});
+
+app.use("/api/", apiLimiter);
 
 const sseClients = new Set<Response>();
 
