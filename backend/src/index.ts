@@ -27,7 +27,7 @@ const ROOT_DIR = path.resolve("data/music");
 fs.mkdirSync("data", { recursive: true });
 fs.mkdirSync(ROOT_DIR, { recursive: true });
 
-const app = express();
+export const app = express();
 
 app.use((req: Request, res: Response, next) => {
   const reqId = (req.headers["x-request-id"] as string) || `req-${crypto.randomUUID()}`;
@@ -132,4 +132,6 @@ async function start() {
   process.on("SIGTERM", () => shutdown("SIGTERM"));
 }
 
-start();
+if (process.env.NODE_ENV !== "test") {
+  start();
+}
