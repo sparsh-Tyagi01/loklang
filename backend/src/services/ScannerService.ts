@@ -163,6 +163,23 @@ export class ScannerService {
     }
   }
 
+  private async mapLimit<T, R>(
+    items: T[],
+    limit: number,
+    fn: (item: T) => Promise<R>
+  ): Promise<R[]> {
+    const results: R[] = new Array(items.length);
+    let index = 0;
+    const workers = Array.from({ length: Math.min(limit, items.length) }, async () => {
+      while (index < items.length) {
+        const currentIndex = index++;
+        results[currentIndex] = await fn(items[currentIndex]);
+      }
+    });
+    await Promise.all(workers);
+    return results;
+  }
+
   public async scanDir(rootDir: string): Promise<void> {
     const resolvedRoot = path.resolve(rootDir);
     if (!fs.existsSync(resolvedRoot)) {
@@ -172,11 +189,9 @@ export class ScannerService {
 
     const files = this.collectAudioFiles(resolvedRoot);
     const existingFilesSet = new Set(files.map((f) => path.resolve(f)));
-    console.log(`Found ${files.length} audio files. Extracting metadata...`);
+    console.log(`Found ${files.length} audio files. Extracting metadata with concurrency 8...`);
 
-    for (const file of files) {
-      await this.processFile(file);
-    }
+    await this.mapLimit(files, 8, (file) => this.processFile(file));
 
     const dbSongs = await prisma.song.findMany();
     for (const song of dbSongs) {

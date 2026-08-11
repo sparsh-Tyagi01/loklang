@@ -23,6 +23,8 @@ router.get("/:id", async (req: Request, res: Response) => {
   const contentType = (mime.lookup(filePath) as string) || "application/octet-stream";
   const range = req.headers.range;
 
+  res.setHeader("Cache-Control", "public, max-age=31536000, immutable");
+
   if (range) {
     const [startStr, endStr] = range.replace(/bytes=/, "").split("-");
     const start = parseInt(startStr, 10);
@@ -40,6 +42,7 @@ router.get("/:id", async (req: Request, res: Response) => {
       "Accept-Ranges": "bytes",
       "Content-Length": chunkSize,
       "Content-Type": contentType,
+      "Cache-Control": "public, max-age=31536000, immutable",
     });
 
     fs.createReadStream(filePath, { start, end }).pipe(res);
@@ -48,6 +51,7 @@ router.get("/:id", async (req: Request, res: Response) => {
       "Content-Length": fileSize,
       "Content-Type": contentType,
       "Accept-Ranges": "bytes",
+      "Cache-Control": "public, max-age=31536000, immutable",
     });
     fs.createReadStream(filePath).pipe(res);
   }

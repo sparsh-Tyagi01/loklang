@@ -40,6 +40,7 @@ model AlbumArtist {
   artist Artist @relation(fields: [artistId], references: [id], onDelete: Cascade)
 
   @@id([albumId, artistId])
+  @@index([artistId])
 }
 
 model Song {
@@ -55,6 +56,10 @@ model Song {
   album     Album?         @relation(fields: [albumId], references: [id], onDelete: SetNull)
   artists   SongArtist[]
   playlists PlaylistSong[]
+
+  @@index([albumId])
+  @@index([title])
+  @@index([isFavorite])
 }
 
 model SongArtist {
@@ -66,6 +71,7 @@ model SongArtist {
   artist Artist @relation(fields: [artistId], references: [id], onDelete: Cascade)
 
   @@id([songId, artistId])
+  @@index([artistId])
 }
 
 model Playlist {
@@ -85,4 +91,5 @@ model PlaylistSong {
   song     Song     @relation(fields: [songId], references: [id], onDelete: Cascade)
 
   @@id([playlistId, songId])
+  @@index([playlistId])
 }

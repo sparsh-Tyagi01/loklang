@@ -12,8 +12,19 @@ router.get("/:albumId", async (req: Request, res: Response) => {
     return res.status(404).send("Cover image not found");
   }
 
+  const stat = fs.statSync(album.coverImage);
+  const etag = `W/"${stat.size}-${stat.mtime.getTime()}"`;
+
+  res.setHeader("Cache-Control", "public, max-age=86400, stale-while-revalidate=3600");
+  res.setHeader("ETag", etag);
+
+  if (req.headers["if-none-match"] === etag) {
+    return res.status(304).end();
+  }
+
   const contentType = (mime.lookup(album.coverImage) as string) || "image/jpeg";
   res.setHeader("Content-Type", contentType);
+  res.setHeader("Content-Length", stat.size);
   fs.createReadStream(album.coverImage).pipe(res);
 });
 
