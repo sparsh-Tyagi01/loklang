@@ -3,7 +3,13 @@ import express, { Request, Response } from "express";
 import cors from "cors";
 import path from "path";
 import fs from "fs";
+import crypto from "crypto";
+import { pinoHttp } from "pino-http";
+import helmet from "helmet";
 
+import { logger } from "./logger.js";
+import { prisma } from "./db.js";
+import healthRouter from "./routes/health.js";
 import songsRouter from "./routes/songs.js";
 import albumsRouter from "./routes/albums.js";
 import artistsRouter from "./routes/artists.js";
@@ -13,6 +19,7 @@ import playlistsRouter from "./routes/playlists.js";
 import qrRouter from "./routes/qr.js";
 import uploadRouter from "./routes/upload.js";
 import { scannerService } from "./services/ScannerService.js";
+import { workerPoolService } from "./services/WorkerPoolService.js";
 
 const PORT = process.env.PORT || 8000;
 const ROOT_DIR = path.resolve("data/music");
@@ -21,6 +28,30 @@ fs.mkdirSync("data", { recursive: true });
 fs.mkdirSync(ROOT_DIR, { recursive: true });
 
 const app = express();
+
+app.use((req: Request, res: Response, next) => {
+  const reqId = (req.headers["x-request-id"] as string) || `req-${crypto.randomUUID()}`;
+  req.headers["x-request-id"] = reqId;
+  res.setHeader("X-Request-Id", reqId);
+  next();
+});
+
+app.use(
+  pinoHttp({
+    logger,
+    genReqId: (req: Request) => (req.headers["x-request-id"] as string) || `req-${crypto.randomUUID()}`,
+    autoLogging: {
+      ignore: (req: Request) => req.url === "/api/events" || req.url?.startsWith("/health"),
+    },
+  })
+);
+
+app.use(
+  helmet({
+    contentSecurityPolicy: false,
+    crossOriginResourcePolicy: { policy: "cross-origin" },
+  })
+);
 app.use(cors());
 app.use(express.json());
 
@@ -47,6 +78,7 @@ export function broadcastLibraryUpdate() {
 
 scannerService.setOnLibraryUpdate(broadcastLibraryUpdate);
 
+app.use("/health", healthRouter);
 app.use("/api/songs", songsRouter);
 app.use("/api/albums", albumsRouter);
 app.use("/api/artists", artistsRouter);
@@ -64,15 +96,40 @@ if (fs.existsSync(clientDist)) {
 
 async function start() {
   const musicPath = path.resolve(ROOT_DIR);
-  console.log(`Scanning "${musicPath}" for music...`);
+  logger.info({ musicPath }, "Scanning music directory...");
   await scannerService.scanDir(musicPath);
-  console.log("Scan complete.");
+  logger.info("Scan complete.");
 
   scannerService.watchMusicDir(musicPath);
 
-  app.listen(Number(PORT), "0.0.0.0", () => {
-    console.log(`Loklang running at http://localhost:${PORT}`);
+  const server = app.listen(Number(PORT), "0.0.0.0", () => {
+    logger.info({ port: PORT, url: `http://localhost:${PORT}` }, "Loklang server running");
   });
+
+  const shutdown = async (signal: string) => {
+    logger.info({ signal }, "Initiating graceful shutdown sequence...");
+    server.close(() => {
+      logger.info("HTTP server closed");
+    });
+
+    for (const client of sseClients) {
+      try {
+        client.end();
+      } catch (e) {}
+    }
+    sseClients.clear();
+
+    workerPoolService.terminate();
+    logger.info("Worker thread pool terminated");
+
+    await prisma.$disconnect();
+    logger.info("Database connection closed");
+
+    process.exit(0);
+  };
+
+  process.on("SIGINT", () => shutdown("SIGINT"));
+  process.on("SIGTERM", () => shutdown("SIGTERM"));
 }
 
 start();

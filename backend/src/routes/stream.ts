@@ -1,5 +1,6 @@
 import { Router, Request, Response } from "express";
 import fs from "fs";
+import path from "path";
 import mime from "mime-types";
 import { libraryService } from "../services/LibraryService.js";
 import { scannerService } from "../services/ScannerService.js";
@@ -12,15 +13,23 @@ router.get("/:id", async (req: Request, res: Response) => {
   if (!song) return res.status(404).send("Song not found");
 
   const filePath = song.filePath;
-  if (!fs.existsSync(filePath)) {
+  const resolvedPath = path.resolve(filePath);
+  const allowedDir = path.resolve("data/music");
+
+  if (!resolvedPath.startsWith(allowedDir)) {
+    console.warn(`Blocked unauthorized path traversal attempt: ${resolvedPath}`);
+    return res.status(403).send("Forbidden path access");
+  }
+
+  if (!fs.existsSync(resolvedPath)) {
     await scannerService.removeSongById(song.id);
     scannerService.notifyLibraryUpdate();
     return res.status(404).send("File missing on disk");
   }
 
-  const stat = fs.statSync(filePath);
+  const stat = fs.statSync(resolvedPath);
   const fileSize = stat.size;
-  const contentType = (mime.lookup(filePath) as string) || "application/octet-stream";
+  const contentType = (mime.lookup(resolvedPath) as string) || "application/octet-stream";
   const range = req.headers.range;
 
   res.setHeader("Cache-Control", "public, max-age=31536000, immutable");
@@ -45,7 +54,7 @@ router.get("/:id", async (req: Request, res: Response) => {
       "Cache-Control": "public, max-age=31536000, immutable",
     });
 
-    fs.createReadStream(filePath, { start, end }).pipe(res);
+    fs.createReadStream(resolvedPath, { start, end }).pipe(res);
   } else {
     res.writeHead(200, {
       "Content-Length": fileSize,
@@ -53,7 +62,7 @@ router.get("/:id", async (req: Request, res: Response) => {
       "Accept-Ranges": "bytes",
       "Cache-Control": "public, max-age=31536000, immutable",
     });
-    fs.createReadStream(filePath).pipe(res);
+    fs.createReadStream(resolvedPath).pipe(res);
   }
 });
 

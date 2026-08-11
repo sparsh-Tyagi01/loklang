@@ -1,8 +1,9 @@
 import fs from "fs";
 import path from "path";
 import crypto from "crypto";
-import { parseFile } from "music-metadata";
 import { prisma } from "../db.js";
+import { logger } from "../logger.js";
+import { workerPoolService } from "./WorkerPoolService.js";
 
 const SUPPORTED_EXT = new Set([".mp3", ".flac", ".ogg", ".wav", ".m4a"]);
 
@@ -44,22 +45,26 @@ export class ScannerService {
 
   public async processFile(filePath: string): Promise<void> {
     try {
-      const { common, format } = await parseFile(filePath, { duration: true });
+      const result = await workerPoolService.parseFileAsync(filePath);
+      if (!result.success) {
+        logger.error({ filePath, error: result.error }, "Worker thread metadata parsing failed");
+        return;
+      }
+
       const songId = this.hashId(filePath);
 
       let albumId: string | null = null;
-      if (common.album) {
-        albumId = this.hashId(common.album);
+      if (result.album) {
+        albumId = this.hashId(result.album);
         let coverImagePath: string | null = null;
 
-        if (common.picture?.length) {
-          const pic = common.picture[0];
+        if (result.pictureData) {
           const coverDir = path.resolve("data/covers");
           fs.mkdirSync(coverDir, { recursive: true });
-          const ext = pic.format.split("/")[1] || "jpg";
+          const ext = result.pictureFormat ? result.pictureFormat.split("/")[1] || "jpg" : "jpg";
           coverImagePath = path.join(coverDir, `${albumId}.${ext}`);
           if (!fs.existsSync(coverImagePath)) {
-            fs.writeFileSync(coverImagePath, pic.data);
+            fs.writeFileSync(coverImagePath, Buffer.from(result.pictureData));
           }
         }
 
@@ -68,8 +73,8 @@ export class ScannerService {
           update: { coverImage: coverImagePath ?? undefined },
           create: {
             id: albumId,
-            title: common.album,
-            releaseDate: common.date ?? null,
+            title: result.album,
+            releaseDate: result.date ?? null,
             coverImage: coverImagePath,
           },
         });
@@ -78,23 +83,23 @@ export class ScannerService {
       await prisma.song.upsert({
         where: { filePath },
         update: {
-          title: common.title || path.basename(filePath),
-          duration: format.duration ? Math.round(format.duration) : null,
+          title: result.title || path.basename(filePath),
+          duration: result.duration ? Math.round(result.duration) : null,
           albumId,
         },
         create: {
           id: songId,
-          title: common.title || path.basename(filePath),
+          title: result.title || path.basename(filePath),
           filePath,
-          duration: format.duration ? Math.round(format.duration) : null,
+          duration: result.duration ? Math.round(result.duration) : null,
           albumId,
         },
       });
 
-      const artistNames = common.artists?.length
-        ? common.artists
-        : common.artist
-        ? [common.artist]
+      const artistNames = result.artists?.length
+        ? result.artists
+        : result.artist
+        ? [result.artist]
         : [];
 
       for (const name of artistNames) {
@@ -121,7 +126,7 @@ export class ScannerService {
         }
       }
     } catch (err: any) {
-      console.error(`Could not parse metadata for ${filePath}:`, err.message);
+      logger.error({ err, filePath }, `Could not process file metadata`);
     }
   }
 
@@ -159,7 +164,7 @@ export class ScannerService {
         }
       }
     } catch (err: any) {
-      console.error(`Error deleting song ID ${songId}:`, err.message);
+      logger.error({ err, songId }, `Error deleting song ID`);
     }
   }
 
@@ -183,13 +188,13 @@ export class ScannerService {
   public async scanDir(rootDir: string): Promise<void> {
     const resolvedRoot = path.resolve(rootDir);
     if (!fs.existsSync(resolvedRoot)) {
-      console.warn(`Root music directory does not exist: ${resolvedRoot}`);
+      logger.warn({ rootDir: resolvedRoot }, `Root music directory does not exist`);
       return;
     }
 
     const files = this.collectAudioFiles(resolvedRoot);
     const existingFilesSet = new Set(files.map((f) => path.resolve(f)));
-    console.log(`Found ${files.length} audio files. Extracting metadata with concurrency 8...`);
+    logger.info({ fileCount: files.length }, `Found audio files. Offloading metadata parsing to Worker Threads...`);
 
     await this.mapLimit(files, 8, (file) => this.processFile(file));
 
@@ -197,7 +202,7 @@ export class ScannerService {
     for (const song of dbSongs) {
       const resolvedPath = path.resolve(song.filePath);
       if (!fs.existsSync(resolvedPath) || !existingFilesSet.has(resolvedPath)) {
-        console.log(`File deleted on disk. Removing from DB: ${song.title} (${song.filePath})`);
+        logger.info({ songId: song.id, title: song.title, filePath: song.filePath }, `File deleted on disk. Removing from DB`);
         await this.removeSongById(song.id);
       }
     }
@@ -209,20 +214,20 @@ export class ScannerService {
     const resolvedRoot = path.resolve(rootDir);
     if (!fs.existsSync(resolvedRoot)) return;
 
-    console.log(`Watching "${resolvedRoot}" for music folder changes...`);
+    logger.info({ rootDir: resolvedRoot }, `Watching music folder for changes`);
     try {
       fs.watch(resolvedRoot, { recursive: true }, (eventType, filename) => {
         if (filename && (filename.startsWith(".") || filename.includes(".tmp"))) return;
         if (this.debounceTimer) clearTimeout(this.debounceTimer);
         this.debounceTimer = setTimeout(() => {
-          console.log(`Change detected in music folder (${eventType}: ${filename}). Rescanning...`);
+          logger.info({ eventType, filename }, `Change detected in music folder. Rescanning...`);
           this.scanDir(resolvedRoot).catch((err) =>
-            console.error("Error during watch rescan:", err)
+            logger.error({ err }, "Error during watch rescan")
           );
         }, 500);
       });
     } catch (err: any) {
-      console.error("Could not set up filesystem watcher:", err.message);
+      logger.error({ err }, "Could not set up filesystem watcher");
     }
   }
 }
