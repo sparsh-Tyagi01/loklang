@@ -1,0 +1,41 @@
+import { useEffect, useState } from "react";
+import { fetchFavorites, toggleFavorite } from "../api";
+import { usePlayer } from "../PlayerContext";
+import { useLibraryEvents } from "../useLibraryEvents";
+import { Song } from "../types";
+import SongRow from "../components/SongRow";
+
+export default function Favorites() {
+  const [songs, setSongs] = useState<Song[]>([]);
+  const [loading, setLoading] = useState(true);
+  const { current, playSong } = usePlayer();
+  const libraryVersion = useLibraryEvents();
+
+  useEffect(() => {
+    fetchFavorites()
+      .then(setSongs)
+      .finally(() => setLoading(false));
+  }, [libraryVersion]);
+
+  async function handleToggleFavorite(songId: string) {
+    await toggleFavorite(songId);
+    setSongs((prev) => prev.filter((s) => s.id !== songId));
+  }
+
+  if (loading) return <p className="empty-state">Loading...</p>;
+  if (songs.length === 0) return <p className="empty-state">No favorites yet. Tap the heart icon on any song.</p>;
+
+  return (
+    <div className="song-list">
+      {songs.map((song) => (
+        <SongRow
+          key={song.id}
+          song={song}
+          isActive={current?.id === song.id}
+          onPlay={() => playSong(song)}
+          onToggleFavorite={handleToggleFavorite}
+        />
+      ))}
+    </div>
+  );
+}
