@@ -1,7 +1,27 @@
-node_modules
-# Keep environment variables out of version control
+# Dependencies
+node_modules/
+
+# Environment Variables
 .env
+.env.*
 
-/generated/prisma
+# Build & Dist
+dist/
+build/
+logs/
+*.log
 
+# Database & Upload Data
 data/
+*.db
+*.db-journal
+
+# System & OS
+.DS_Store
+Thumbs.db
+
+# IDE & Tooling Caches
+.claude/
+.windsurf/
+.agents/
+skills-lock.json

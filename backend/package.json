@@ -1,21 +1,22 @@
 {
   "name": "backend",
   "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
+  "description": "Loklang High-Performance Local Music Streaming Engine Backend",
+  "main": "dist/index.js",
+  "type": "module",
   "scripts": {
     "dev": "prisma generate && tsx watch src/index.ts",
     "build": "prisma generate && tsc",
+    "start": "node dist/index.js",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "prisma:generate": "prisma generate",
     "prisma:push": "prisma db push",
     "db:reset": "prisma db push --force-reset"
   },
-  "keywords": [],
+  "keywords": ["music", "streaming", "local", "audio", "hifi", "loklang"],
   "author": "",
   "license": "ISC",
-  "type": "module",
   "dependencies": {
     "@prisma/adapter-better-sqlite3": "^7.9.1",
     "@prisma/client": "^7.9.1",
@@ -33,6 +34,7 @@
     "qrcode": "^1.5.4"
   },
   "devDependencies": {
+    "@types/better-sqlite3": "^9.6.0",
     "@types/compression": "^1.8.1",
     "@types/cors": "^2.8.19",
     "@types/express": "^5.0.6",
